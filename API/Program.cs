@@ -9,10 +9,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Injects database service and connects with db by "DefaultConnection"
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddCors();
 
 var app = builder.Build();
 
@@ -23,10 +27,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors(opt => {
+    opt.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
+});
+
 app.UseAuthorization();
 
 app.MapControllers();
 
+// Alternative way of creating db and running migrations
 var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<StoreContext>();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
